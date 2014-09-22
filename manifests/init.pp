@@ -1,41 +1,92 @@
 # == Class: windows_freerdp
 #
-# Full description of class windows_freerdp here.
+# This module downloads then installs Cloudbase Solutions FreeRDP tools 
+# 
+# Parameters: none 
 #
 # === Parameters
 #
 # Document parameters here.
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
-#   e.g. "Specify one or more upstream ntp servers as an array."
+# [rdp_url]
+#   Specifies a url to a zip file containing the Windows FreeRDP files.
+#   This defaults to a nightly build of FreeRDP produced by Cloudbase Solutions.
 #
-# === Variables
+# [rdp_file]
+#   The name of the zip file to be saved on the local machine.
 #
-# Here you should define a list of variables that this module would require.
+# [ps_module_loc]
+#   A fully-qualified directory in the PSModule search path.
 #
-# [*sample_variable*]
-#   Explanation of how this variable affects the funtion of this class and if it
-#   has a default. e.g. "The parameter enc_ntp_servers must be set by the
-#   External Node Classifier as a comma separated list of hostnames." (Note,
-#   global variables should not be used in preference to class parameters  as of
-#   Puppet 2.6.)
+# [windows_dir]
+#   The root Windows directory.  ('C:\Windows' in default installations.)
+#
 #
 # === Examples
 #
 #  class { windows_freerdp:
-#    servers => [ 'pool.ntp.org', 'ntp.local.company.com' ]
+#    rdp_url  => 'http://some.other/FreeRDP/build.zip',
+#    rdp_file => 'free-rdp.zip'
 #  }
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Tim Rogers <tiroger@microsoft.com>
 #
 # === Copyright
 #
-# Copyright 2013 Your name here, unless otherwise noted.
+# Copyright 2014 Tim Rogers.
 #
-class windows_freerdp {
+class windows_freerdp (
 
+  $rdp_url       = 'http://www.cloudbase.it/downloads/wfreerdp_nightly_build.zip',
+  $rdp_file      = 'FreeRDP.zip',
+  $ps_module_loc = 'C:\Windows\system32\WindowsPowerShell\v1.0\Modules',
+  $windows_dir   = 'C:\Windows',
+
+){
+  
+  windows_common::remote_file{'FreeRDP-cloudbase':
+    source      => $rdp_url,
+    destination => "${::temp}\\${rdp_file}",
+  }
+
+  windows_7zip::extract_file{'FreeRDP-Powershell-Module':
+    file        => $rdp_file,
+    destination => "${::temp}",
+    require     => Windows_common::Remote_file['FreeRDP-cloudbase'],
+  }
+
+  file {"${ps_module_loc}\\FreeRDP":
+    ensure  => directory,
+  }
+  
+  file {"${ps_module_loc}\\FreeRDP\\FreeRDP.psm1":
+    ensure  => file,
+    source  => "${::temp}\\Hyper-V\FreeRDP.psm1",
+    require => File["${ps_module_loc}\\FreeRDP"], Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
+  }
+  
+  file {"${windows_dir}\\wfreerdp.exe":
+    ensure  => file,
+    source  => "${::temp}\\wfreerdp.exe",
+    require => Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
+  }
+
+#  # Clean up
+#  file {"${::temp}\\Hyper-V":
+#    ensure  => absent,
+#    force   => true,
+#    require => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"]
+#  }
+#  file {"${::temp}\\wfreerdp.exe":
+#    ensure  => absent,
+#    require => File["${windows_dir}\\wfreerdp.exe"],
+#  }
+#  file {"${::temp}\\${rdp_file}":
+#    ensure  => absent,
+#    require => File["${::temp}\\Hyper-V", "${::temp}\\wfreerdp.exe"],
+#  }
+  
 
 }
