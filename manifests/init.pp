@@ -41,6 +41,7 @@ class windows_freerdp (
 
   $rdp_url       = 'http://www.cloudbase.it/downloads/wfreerdp_nightly_build.zip',
   $rdp_file      = 'FreeRDP.zip',
+  $local_temp    = 'C:\ProgramData',
   $ps_module_loc = 'C:\Windows\system32\WindowsPowerShell\v1.0\Modules',
   $windows_dir   = 'C:\Windows',
 
@@ -48,44 +49,45 @@ class windows_freerdp (
   
   windows_common::remote_file{'FreeRDP-cloudbase':
     source      => $rdp_url,
-    destination => "${::temp}\\${rdp_file}",
+    destination => "${local_temp}\\${rdp_file}",
   }
 
   windows_7zip::extract_file{'FreeRDP-Powershell-Module':
-    file        => $rdp_file,
-    destination => "${::temp}",
-    require     => Windows_common::Remote_file['FreeRDP-cloudbase'],
+    file        => "${local_temp}\\${rdp_file}",
+    destination => "${local_temp}",
+    subscribe   => Windows_common::Remote_file['FreeRDP-cloudbase'],
   }
 
   file {"${ps_module_loc}\\FreeRDP":
     ensure  => directory,
+    before  => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"],
   }
   
   file {"${ps_module_loc}\\FreeRDP\\FreeRDP.psm1":
     ensure  => file,
-    source  => "${::temp}\\Hyper-V\FreeRDP.psm1",
-    require => File["${ps_module_loc}\\FreeRDP"], Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
+    source  => "${local_temp}\\Hyper-V\FreeRDP.psm1",
+    require => Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
   }
   
   file {"${windows_dir}\\wfreerdp.exe":
     ensure  => file,
-    source  => "${::temp}\\wfreerdp.exe",
+    source  => "${local_temp}\\wfreerdp.exe",
     require => Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
   }
 
 #  # Clean up
-#  file {"${::temp}\\Hyper-V":
+#  file {"${local_temp}\\Hyper-V":
 #    ensure  => absent,
 #    force   => true,
 #    require => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"]
 #  }
-#  file {"${::temp}\\wfreerdp.exe":
+#  file {"${local_temp}\\wfreerdp.exe":
 #    ensure  => absent,
 #    require => File["${windows_dir}\\wfreerdp.exe"],
 #  }
-#  file {"${::temp}\\${rdp_file}":
+#  file {"${local_temp}\\${rdp_file}":
 #    ensure  => absent,
-#    require => File["${::temp}\\Hyper-V", "${::temp}\\wfreerdp.exe"],
+#    require => File["${local_temp}\\Hyper-V", "${local_temp}\\wfreerdp.exe"],
 #  }
   
 
