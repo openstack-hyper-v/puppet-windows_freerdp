@@ -1,5 +1,4 @@
 # == Class: windows_freerdp
-#
 # This module downloads then installs Cloudbase Solutions FreeRDP tools
 #
 # Parameters: none
@@ -38,13 +37,11 @@
 # Copyright 2014 Tim Rogers.
 #
 class windows_freerdp (
-
   $rdp_url       = 'http://www.cloudbase.it/downloads/wfreerdp_nightly_build.zip',
   $rdp_file      = 'FreeRDP.zip',
   $local_temp    = 'C:\ProgramData',
   $ps_module_loc = 'C:\Windows\system32\WindowsPowerShell\v1.0\Modules',
   $windows_dir   = 'C:\Windows',
-
 ){
   windows_common::remote_file{'FreeRDP-cloudbase':
     source      => $rdp_url,
