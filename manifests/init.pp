@@ -67,7 +67,6 @@ class windows_freerdp (
     source  => "${local_temp}\\Hyper-V\FreeRDP.psm1",
     require => Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
   }
- 
   file {"${windows_dir}\\wfreerdp.exe":
     ensure  => file,
     source  => "${local_temp}\\wfreerdp.exe",
