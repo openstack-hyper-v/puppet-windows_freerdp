@@ -54,9 +54,9 @@ class windows_freerdp (
     subscribe   => Windows_common::Remote_file['FreeRDP-cloudbase'],
   }
 
-  file {"${ps_module_loc}\\FreeRDP":
-    ensure      => directory,
-    before      => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"],
+  file{"${ps_module_loc}\\FreeRDP":
+    ensure => directory,
+    before => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"],
   }
 
   file {"${ps_module_loc}\\FreeRDP\\FreeRDP.psm1":
