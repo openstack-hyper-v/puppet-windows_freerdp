@@ -1,8 +1,8 @@
 # == Class: windows_freerdp
 #
-# This module downloads then installs Cloudbase Solutions FreeRDP tools 
-# 
-# Parameters: none 
+# This module downloads then installs Cloudbase Solutions FreeRDP tools
+#
+# Parameters: none
 #
 # === Parameters
 #
@@ -46,7 +46,6 @@ class windows_freerdp (
   $windows_dir   = 'C:\Windows',
 
 ){
-  
   windows_common::remote_file{'FreeRDP-cloudbase':
     source      => $rdp_url,
     destination => "${local_temp}\\${rdp_file}",
@@ -54,7 +53,7 @@ class windows_freerdp (
 
   windows_7zip::extract_file{'FreeRDP-Powershell-Module':
     file        => "${local_temp}\\${rdp_file}",
-    destination => "${local_temp}",
+    destination => $local_temp,
     subscribe   => Windows_common::Remote_file['FreeRDP-cloudbase'],
   }
 
@@ -62,13 +61,13 @@ class windows_freerdp (
     ensure  => directory,
     before  => File["${ps_module_loc}\\FreeRDP\\FreeRDP.psm1"],
   }
-  
+
   file {"${ps_module_loc}\\FreeRDP\\FreeRDP.psm1":
     ensure  => file,
     source  => "${local_temp}\\Hyper-V\FreeRDP.psm1",
     require => Windows_7zip::Extract_file['FreeRDP-Powershell-Module'],
   }
-  
+ 
   file {"${windows_dir}\\wfreerdp.exe":
     ensure  => file,
     source  => "${local_temp}\\wfreerdp.exe",
@@ -89,6 +88,4 @@ class windows_freerdp (
 #    ensure  => absent,
 #    require => File["${local_temp}\\Hyper-V", "${local_temp}\\wfreerdp.exe"],
 #  }
-  
-
 }
